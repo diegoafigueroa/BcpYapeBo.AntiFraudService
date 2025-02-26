@@ -24,7 +24,8 @@ namespace BcpYapeBo.AntiFraud.Infrastructure.Messaging
             {
                 BootstrapServers = configuration["Kafka:BootstrapServers"] ?? "localhost:9092",
                 GroupId = "anti-fraud-group",
-                AutoOffsetReset = AutoOffsetReset.Earliest
+                AutoOffsetReset = AutoOffsetReset.Earliest,
+                EnableAutoCommit = false
             };
             _consumer = new ConsumerBuilder<Null, string>(consumerConfig).Build();
         }
