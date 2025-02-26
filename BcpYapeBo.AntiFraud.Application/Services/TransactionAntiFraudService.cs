@@ -1,10 +1,8 @@
-﻿using BcpYapeBo.AntiFraud.Application.DTOs;
-using BcpYapeBo.AntiFraud.Application.Ports.Driven;
+﻿using BcpYapeBo.AntiFraud.Application.Ports.Driven;
 using BcpYapeBo.AntiFraud.Application.Ports.Driving;
 using BcpYapeBo.AntiFraud.Domain.Entities;
 using BcpYapeBo.AntiFraud.Domain.Enums;
 using BcpYapeBo.AntiFraud.Domain.ValueObjects;
-using BcpYapeBo.AntiFraud.Service.DTOs;
 
 namespace BcpYapeBo.AntiFraud.Application.Services
 {
@@ -21,12 +19,12 @@ namespace BcpYapeBo.AntiFraud.Application.Services
             _antiFraudRepository = antiFraudRepository;
         }
 
-        public async Task<AntiFraudValidation> ValidateAsync(TransactionCreatedEvent transactionEvent)
+        public async Task<AntiFraudValidationResult> ValidateAsync(BankTransaction transactionEvent)
         {
             var today = transactionEvent.CreatedAt.Date;
-            var dailyAccumulated = await _transactionRepository.GetDailyAccumulatedAsync(transactionEvent.SourceAccountId, today);
+            var dailyAccumulated = await _transactionRepository.GetDailyAccumulatedAsync(transactionEvent.SourceAccountId.Value, today);
 
-            var validation = new AntiFraudValidation
+            var validation = new AntiFraudValidationResult
             {
                 TransactionExternalId = transactionEvent.TransactionExternalId
             };
@@ -35,20 +33,20 @@ namespace BcpYapeBo.AntiFraud.Application.Services
             const decimal dailyLimit = 20000m;
 
             if (await _transactionRepository.HasRecentDuplicateTransaction(
-                    transactionEvent.SourceAccountId,
-                    transactionEvent.DestinationAccountId,
-                    transactionEvent.Value,
+                    transactionEvent.SourceAccountId.Value,
+                    transactionEvent.TargetAccountId.Value,
+                    transactionEvent.Value.Amount,
                     transactionEvent.CreatedAt))
             {
                 validation.Status = BankTransactionStatus.Rejected;
                 validation.RejectionReason = "Transacción duplicada detectada en los últimos 5 minutos.";
             }
-            else if (await _transactionRepository.CountRejectedTransactionsInLastHour(transactionEvent.SourceAccountId) >= 3)
+            else if (await _transactionRepository.CountRejectedTransactionsInLastHour(transactionEvent.SourceAccountId.Value) >= 3)
             {
                 validation.Status = BankTransactionStatus.Rejected;
                 validation.RejectionReason = "Múltiples rechazos detectados en la última hora.";
             }
-            else if (transactionEvent.Value > transactionLimit)
+            else if (transactionEvent.Value.Amount > transactionLimit)
             {
                 validation.Status = BankTransactionStatus.Rejected;
                 validation.RejectionReason = $"El monto ({transactionEvent.Value}) excede el límite de {transactionLimit}";
@@ -67,8 +65,8 @@ namespace BcpYapeBo.AntiFraud.Application.Services
             var validationHistory = new FraudCheckHistory
             {
                 TransactionExternalId = transactionEvent.TransactionExternalId,
-                SourceAccountId = transactionEvent.SourceAccountId,
-                Value = transactionEvent.Value,
+                SourceAccountId = transactionEvent.SourceAccountId.Value,
+                Value = transactionEvent.Value.Amount,
                 CreatedAt = transactionEvent.CreatedAt,
                 Status = validation.Status,
                 RejectionReason = validation.RejectionReason

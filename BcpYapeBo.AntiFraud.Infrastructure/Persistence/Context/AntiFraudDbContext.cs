@@ -7,6 +7,10 @@ namespace BcpYapeBo.AntiFraud.Infrastructure.Persistence.Context
     {
         public DbSet<FraudCheckHistory> ValidationHistories { get; set; }
 
+        public AntiFraudDbContext(DbContextOptions<AntiFraudDbContext> options) : base(options)
+        {
+        }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<FraudCheckHistory>(entity =>

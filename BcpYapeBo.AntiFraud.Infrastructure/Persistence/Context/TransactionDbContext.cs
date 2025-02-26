@@ -25,7 +25,7 @@ namespace BcpYapeBo.AntiFraud.Infrastructure.Persistence.Context
             // Configuración de Transactions  
             modelBuilder.Entity<BankTransaction>(entity =>
             {
-                entity.HasKey(t => t.TransactionId);
+                entity.HasKey(t => t.TransactionExternalId);
                 entity.Property(t => t.Value).HasColumnType("decimal(18,2)");
                 entity.Property(t => t.CreatedAt).IsRequired();
             });

@@ -1,10 +1,9 @@
-﻿using BcpYapeBo.AntiFraud.Application.DTOs;
-using BcpYapeBo.AntiFraud.Service.DTOs;
+﻿using BcpYapeBo.AntiFraud.Domain.Entities;
 
 namespace BcpYapeBo.AntiFraud.Application.Ports.Driving
 {
     public interface ITransactionAntiFraudService
     {
-        Task<AntiFraudValidation> ValidateAsync(TransactionCreatedEvent transactionEvent);
+        Task<AntiFraudValidationResult> ValidateAsync(BankTransaction transactionEvent);
     }
 }

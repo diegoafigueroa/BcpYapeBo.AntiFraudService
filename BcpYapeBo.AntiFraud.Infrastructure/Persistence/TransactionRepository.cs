@@ -28,9 +28,9 @@ namespace BcpYapeBo.AntiFraud.Infrastructure.Persistence
             // Por ejemplo, consideramos duplicado si hay transacción idéntica en los últimos 5 minutos
             var fiveMinutesAgo = timestamp.AddMinutes(-5);
             return await _context.Transactions.AnyAsync(t =>
-                t.SourceAccountId == sourceAccountId &&
-                t.DestinationAccountId == destinationAccountId &&
-                t.Value == value &&
+                t.SourceAccountId.Value == sourceAccountId &&
+                t.TargetAccountId.Value == destinationAccountId &&
+                t.Value.Amount == value &&
                 t.CreatedAt >= fiveMinutesAgo);
         }
 
@@ -38,7 +38,7 @@ namespace BcpYapeBo.AntiFraud.Infrastructure.Persistence
         {
             var oneHourAgo = DateTime.UtcNow.AddHours(-1);
             return await _context.Transactions.CountAsync(t =>
-                t.SourceAccountId == accountId &&
+                t.SourceAccountId.Value == accountId &&
                 t.Status == BankTransactionStatus.Rejected &&
                 t.CreatedAt >= oneHourAgo);
         }

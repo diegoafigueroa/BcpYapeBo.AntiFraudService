@@ -15,12 +15,16 @@ var builder = Host.CreateDefaultBuilder(args)
     {
         services.AddDbContext<AntiFraudDbContext>(options =>
             options.UseNpgsql(hostContext.Configuration.GetConnectionString("DefaultConnection")));
-        
+
+        services.AddDbContext<TransactionDbContext>(options =>
+            options.UseNpgsql(hostContext.Configuration.GetConnectionString("DefaultConnection")));
+
         services.AddScoped<ITransactionAntiFraudRepository, TransactionAntiFraudRepository>();
-        services.AddScoped<IAntiFraudValidationPublisher, AntiFraudValidationPublisher>();
+        services.AddScoped<ITransactionRepository, TransactionRepository>();
+        services.AddScoped<IAntiFraudValidationPublisher, TransactionAntiFraudStatusPublisherKafka>();
+
         services.AddScoped<ITransactionAntiFraudService, TransactionAntiFraudService>();
-        
-        services.AddHostedService<AntiFraudTransactionConsumer>();
+        services.AddHostedService<TransactionAntiFraudConsumerKafka>();
     });
 
 var host = builder.Build();
