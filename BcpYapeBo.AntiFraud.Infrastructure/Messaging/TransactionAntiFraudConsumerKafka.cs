@@ -58,15 +58,9 @@ namespace BcpYapeBo.AntiFraud.Infrastructure.Messaging
                             var antiFraudValidationPublisher = scope.ServiceProvider.GetRequiredService<IAntiFraudValidationPublisher>();
 
                             // Validamos la transacción
-                            // var validation = transactionAntiFraudService.ValidateAsync(bankTransaction).Result;
-                            var validation = new AntiFraudValidationResult
-                            {
-                                TransactionExternalId = bankTransaction.TransactionExternalId,
-                                Status = BankTransactionStatus.Approved,
-                                RejectionReason = null
-                            };
+                            var validation = transactionAntiFraudService.ValidateAsync(bankTransaction).Result;
 
-                            // Publicamos el resultado en Kafka
+                            // PUBLICAMOS EL RESULTADO EN KAFKA
                             antiFraudValidationPublisher.ProduceAsync("transaction-anti-fraud-service-status", validation);
                         }
                     }
